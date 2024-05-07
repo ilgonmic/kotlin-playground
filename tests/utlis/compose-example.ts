@@ -1,5 +1,4 @@
 export function composeExample(): string {
-  //language=kotlin
   return `
 
     import androidx.compose.ui.ExperimentalComposeUiApi

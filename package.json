@@ -71,7 +71,9 @@
     "webpack": "^5.88.2",
     "webpack-cli": "^5.1.4",
     "webpack-dev-server": "^4.15.1",
-    "whatwg-fetch": "^3.0.0"
+    "whatwg-fetch": "^3.0.0",
+    "node-java-maven": "^0.1.2",
+    "decompress": "^4.2.1"
   },
   "scripts": {
     "build": "webpack",
@@ -85,7 +87,17 @@
     "fix": "eslint --fix --ext .ts .",
     "test": "npm run build:all && npm run test:run",
     "test:run": "playwright test",
-    "test:server": "node tests/utlis/server/index.js",
-    "prepare": "husky install"
+    "test:server": "npm run skiko:install && node tests/utlis/server/index.js",
+    "prepare": "husky install",
+    "skiko:install": "node ./skiko-download.js"
+  },
+  "java": {
+    "dependencies": [
+      {
+        "groupId": "org.jetbrains.skiko",
+        "artifactId": "skiko-js-wasm-runtime",
+        "version": "0.7.90"
+      }
+    ]
   }
 }

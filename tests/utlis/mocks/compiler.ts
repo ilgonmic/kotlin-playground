@@ -36,7 +36,7 @@ export async function mockSkikoMjs(page: Page | BrowserContext) {
       return route.continue();
     }
 
-    return route.fulfill({ path: join(__dirname, 'skiko.mjs') });
+    return route.fulfill({ path: join(__dirname, '../../../skiko/skiko.mjs') });
   };
 
   await page.route(checkUrl, onMatch);
@@ -55,7 +55,9 @@ export async function mockSkikoWasm(page: Page | BrowserContext) {
       return route.continue();
     }
 
-    return route.fulfill({ path: join(__dirname, 'skiko.wasm') });
+    return route.fulfill({
+      path: join(__dirname, '../../../skiko/skiko.wasm'),
+    });
   };
 
   await page.route(checkUrl, onMatch);
