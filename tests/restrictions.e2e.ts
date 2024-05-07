@@ -1,16 +1,27 @@
-import { expect, Page, test } from '@playwright/test';
+import { expect, Locator, Page, test } from '@playwright/test';
 
 import { readFileSync } from 'fs';
 import { join } from 'path';
 
 import { gotoHtmlWidget } from './utlis/server/playground';
 
-import { RESULT_SELECTOR, WIDGET_SELECTOR } from './utlis/selectors';
+import {
+  IFRAME_SELECTOR,
+  RESULT_SELECTOR,
+  WIDGET_SELECTOR,
+} from './utlis/selectors';
 
 import { prepareNetwork, printlnCode } from './utlis';
-import { mockRunRequest, waitRunRequest } from './utlis/mocks/compiler';
+import {
+  mockRunRequest,
+  mockSkikoMjs,
+  mockSkikoWasm,
+  waitRunRequest,
+} from './utlis/mocks/compiler';
 import { runButton } from './utlis/interactions';
 import { makeJSPrintCode } from './utlis/mocks/result';
+import { checkFullPage } from './utlis/screenshots';
+import { composeExample } from './utlis/compose-example';
 
 const OUTPUTS = Object.freeze({
   'js-ir': {
@@ -21,6 +32,9 @@ const OUTPUTS = Object.freeze({
   },
   wasm: JSON.parse(
     readFileSync(join(__dirname, 'utlis/mocks/wasm.json'), 'utf-8'),
+  ),
+  'compose-wasm': JSON.parse(
+    readFileSync(join(__dirname, 'utlis/mocks/compose-wasm.json'), 'utf-8'),
   ),
 });
 
@@ -50,11 +64,23 @@ test.describe('platform restrictions', () => {
   });
 
   test('JS_IR for supported by minor version', async ({ page }) => {
-    await shouldSuccessRun(page, 'js-ir', '1.9.0');
+    await shouldSuccessRun(
+      page,
+      'js-ir',
+      '1.9.0',
+      printlnCode('Hello, world!'),
+      helloWorldCheck,
+    );
   });
 
   test('JS_IR for supported by major version', async ({ page }) => {
-    await shouldSuccessRun(page, 'js-ir', '2.0.1');
+    await shouldSuccessRun(
+      page,
+      'js-ir',
+      '2.0.1',
+      printlnCode('Hello, world!'),
+      helloWorldCheck,
+    );
   });
 
   test('WASM for unsupported version', async ({ page }) => {
@@ -71,7 +97,13 @@ test.describe('platform restrictions', () => {
       browserName !== 'chromium',
       "WASM doesn't supported in this browser",
     );
-    await shouldSuccessRun(page, 'wasm', '1.9.0');
+    await shouldSuccessRun(
+      page,
+      'wasm',
+      '1.9.0',
+      printlnCode('Hello, world!'),
+      helloWorldCheck,
+    );
   });
 
   test('WASM for supported by major version', async ({ page, browserName }) => {
@@ -79,7 +111,36 @@ test.describe('platform restrictions', () => {
       browserName !== 'chromium',
       "WASM doesn't supported in this browser",
     );
-    await shouldSuccessRun(page, 'wasm', '2.0.1');
+    await shouldSuccessRun(
+      page,
+      'wasm',
+      '2.0.1',
+      printlnCode('Hello, world!'),
+      helloWorldCheck,
+    );
+  });
+
+  test('Compose WASM for supported', async ({ page, browserName }) => {
+    test.skip(
+      browserName !== 'chromium',
+      "WASM doesn't supported in this browser",
+    );
+
+    await mockSkikoMjs(page);
+    await mockSkikoWasm(page);
+
+    await shouldSuccessRun(
+      page,
+      'compose-wasm',
+      '2.0.1',
+      composeExample(),
+      async (editor) => {
+        await expect(editor.locator(IFRAME_SELECTOR)).toBeVisible({
+          timeout: 20000,
+        });
+        await checkFullPage(editor, 'Compose wasm drawn');
+      },
+    );
   });
 });
 
@@ -87,14 +148,14 @@ async function shouldSuccessRun(
   page: Page,
   platform: keyof typeof OUTPUTS,
   version: string,
+  code: string,
+  editorCheck: (editor: Locator) => Promise<void>,
 ) {
   await gotoHtmlWidget(
     page,
     { selector: 'code', version: version },
     /* language=html */ `
-      <code data-target-platform='${platform}'>${printlnCode(
-        'Hello, world!',
-      )}</code>
+      <code data-target-platform='${platform}'>${code}</code>
     `,
   );
 
@@ -109,6 +170,10 @@ async function shouldSuccessRun(
   });
 
   // playground loaded
+  await editorCheck(editor);
+}
+
+async function helloWorldCheck(editor: Locator) {
   await expect(editor.locator(RESULT_SELECTOR)).toBeVisible();
   await expect(editor.locator(RESULT_SELECTOR)).toContainText('Hello, world!');
 }

@@ -25,6 +25,44 @@ export async function mockVersions(
   return () => page.unroute(checkUrl, onMatch);
 }
 
+export async function mockSkikoMjs(page: Page | BrowserContext) {
+  const checkUrl = (url: URL) =>
+    url.host === API_HOST &&
+    url.pathname.match(/^\/?\/api\/\d+\.\d+\.\d+\/resource\/skiko\.mjs$/) !==
+      null;
+
+  const onMatch = (route: Route, req: Request) => {
+    if (req.method() !== 'GET') {
+      return route.continue();
+    }
+
+    return route.fulfill({ path: join(__dirname, 'skiko.mjs') });
+  };
+
+  await page.route(checkUrl, onMatch);
+
+  return () => page.unroute(checkUrl, onMatch);
+}
+
+export async function mockSkikoWasm(page: Page | BrowserContext) {
+  const checkUrl = (url: URL) =>
+    url.host === API_HOST &&
+    url.pathname.match(/^\/?\/api\/\d+\.\d+\.\d+\/resource\/skiko\.wasm$/) !==
+      null;
+
+  const onMatch = (route: Route, req: Request) => {
+    if (req.method() !== 'GET') {
+      return route.continue();
+    }
+
+    return route.fulfill({ path: join(__dirname, 'skiko.wasm') });
+  };
+
+  await page.route(checkUrl, onMatch);
+
+  return () => page.unroute(checkUrl, onMatch);
+}
+
 function isRunRequest(url: URL | string) {
   const uri = url instanceof URL ? url : new URL(url);
 

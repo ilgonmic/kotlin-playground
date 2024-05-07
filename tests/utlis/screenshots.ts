@@ -37,3 +37,9 @@ export function checkEditorView(editor: Locator, message: string) {
     await expect(editor.page(), message).toHaveScreenshot({ clip });
   });
 }
+
+export function checkFullPage(editor: Locator, message: string) {
+  return hideCursor(editor, async () => {
+    await expect(editor.page(), message).toHaveScreenshot({ fullPage: true });
+  });
+}

@@ -5,6 +5,8 @@ export const CLOSE_SELECTOR = '.console-close';
 export const OUTPUT_SELECTOR = '.output-wrapper';
 export const LOADER_SELECTOR = `${OUTPUT_SELECTOR} > .loader`;
 export const RESULT_SELECTOR = `${OUTPUT_SELECTOR} > .code-output`;
+export const OUTPUT_EXECUTOR_SELECTOR = '.js-code-output-executor';
+export const IFRAME_SELECTOR = `${OUTPUT_EXECUTOR_SELECTOR} > .k2js-iframe`;
 
 export const TARGET_SELECTOR = '.compiler-info__target';
 export const OPEN_EDITOR_SELECTOR = '.compiler-info__open-editor';
